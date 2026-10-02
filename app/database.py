@@ -35,10 +35,15 @@ def init_db(db_path: str | None = None) -> None:
                 schema_version TEXT NOT NULL DEFAULT 'v1.0',
                 status TEXT NOT NULL DEFAULT 'active',
                 owner TEXT NOT NULL,
+                quality_score REAL NOT NULL DEFAULT 0.0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
         """)
+        cursor = conn.execute("PRAGMA table_info(datasets);")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "quality_score" not in columns:
+            conn.execute("ALTER TABLE datasets ADD COLUMN quality_score REAL NOT NULL DEFAULT 0.0;")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS pipeline_runs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,6 +69,7 @@ def _row_to_dataset(row: sqlite3.Row) -> DatasetResponse:
         schema_version=row["schema_version"],
         status=row["status"],
         owner=row["owner"],
+        quality_score=row["quality_score"],
         created_at=row["created_at"],
         updated_at=row["updated_at"],
     )
@@ -87,8 +93,8 @@ def create_dataset(payload: DatasetCreate, db_path: str | None = None) -> Datase
     with conn:
         cursor = conn.execute(
             """
-            INSERT INTO datasets (name, source, format, row_count, schema_version, status, owner, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO datasets (name, source, format, row_count, schema_version, status, owner, quality_score, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload.name,
@@ -98,6 +104,7 @@ def create_dataset(payload: DatasetCreate, db_path: str | None = None) -> Datase
                 payload.schema_version,
                 payload.status,
                 payload.owner,
+                payload.quality_score,
                 now,
                 now,
             ),

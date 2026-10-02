@@ -57,6 +57,7 @@ def test_create_and_get_dataset(client):
         "schema_version": "v1.2",
         "status": "active",
         "owner": "camilo@data-eng.io",
+        "quality_score": 0.95,
     }
     # Create dataset
     post_res = client.post("/datasets", json=payload)
@@ -66,6 +67,7 @@ def test_create_and_get_dataset(client):
     assert created["name"] == payload["name"]
     assert created["source"] == payload["source"]
     assert created["row_count"] == 50000
+    assert created["quality_score"] == 0.95
 
     dataset_id = created["id"]
 
@@ -75,6 +77,7 @@ def test_create_and_get_dataset(client):
     fetched = get_res.json()
     assert fetched["id"] == dataset_id
     assert fetched["owner"] == payload["owner"]
+    assert fetched["quality_score"] == 0.95
 
 
 def test_get_dataset_not_found(client):
@@ -105,6 +108,7 @@ def test_list_datasets(client):
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
+    assert data[0]["quality_score"] == 0.0
 
 
 def test_update_dataset(client):
@@ -118,14 +122,16 @@ def test_update_dataset(client):
     ).json()
 
     dataset_id = created["id"]
+    assert created["quality_score"] == 0.0
 
-    update_payload = {"row_count": 120000, "status": "deprecated"}
+    update_payload = {"row_count": 120000, "status": "deprecated", "quality_score": 0.88}
     put_res = client.put(f"/datasets/{dataset_id}", json=update_payload)
     assert put_res.status_code == 200
     updated = put_res.json()
     assert updated["row_count"] == 120000
     assert updated["status"] == "deprecated"
     assert updated["name"] == "raw_events"
+    assert updated["quality_score"] == 0.88
 
 
 def test_delete_dataset(client):
