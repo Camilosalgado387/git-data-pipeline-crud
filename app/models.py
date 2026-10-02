@@ -10,6 +10,7 @@ class DatasetBase(BaseModel):
     schema_version: str = Field(default="v1.0", examples=["v1.0"])
     status: str = Field(default="active", examples=["active", "deprecated", "archived"])
     owner: str = Field(..., examples=["data-team@company.com"])
+    quality_score: float = Field(default=0.0, ge=0, le=1.0)
 
 
 class DatasetCreate(DatasetBase):
@@ -24,6 +25,7 @@ class DatasetUpdate(BaseModel):
     schema_version: str | None = None
     status: str | None = None
     owner: str | None = None
+    quality_score: float | None = Field(None, ge=0, le=1.0)
 
 
 class DatasetResponse(DatasetBase):
