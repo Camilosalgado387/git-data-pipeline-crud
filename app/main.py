@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Data Pipeline & Dataset Catalog API",
     description="A hands-on Data Engineering API to manage dataset metadata and pipeline run logs while mastering Git and CI/CD.",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -41,7 +41,7 @@ app = FastAPI(
 def read_root():
     return {
         "project": "Data Pipeline & Dataset Catalog API",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "docs_url": "/docs",
         "status": "healthy",
     }
