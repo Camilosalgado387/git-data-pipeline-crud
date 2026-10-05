@@ -1,7 +1,12 @@
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from secrets import compare_digest
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from app.database import (
     create_dataset,
@@ -21,6 +26,24 @@ from app.models import (
     PipelineRunResponse,
 )
 
+LOGIN_USERNAME = "admin"
+LOGIN_PASSWORD = "admin"
+basic_auth = HTTPBasic()
+
+
+def verify_credentials(
+    credentials: Annotated[HTTPBasicCredentials, Depends(basic_auth)],
+):
+    valid_username = compare_digest(credentials.username, LOGIN_USERNAME)
+    valid_password = compare_digest(credentials.password, LOGIN_PASSWORD)
+    if not (valid_username and valid_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +58,9 @@ app = FastAPI(
     description="A hands-on Data Engineering API to manage dataset metadata and pipeline run logs while mastering Git and CI/CD.",
     version="0.2.0",
     lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 
@@ -51,6 +77,21 @@ def read_root():
 @app.get("/health", tags=["General"])
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/login", include_in_schema=False)
+def login(_: str = Depends(verify_credentials)):
+    return RedirectResponse(url="/docs", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.get("/docs", include_in_schema=False)
+def docs(_: str = Depends(verify_credentials)):
+    return get_swagger_ui_html(openapi_url="/openapi.json", title=f"{app.title} - Docs")
+
+
+@app.get("/openapi.json", include_in_schema=False)
+def openapi(_: str = Depends(verify_credentials)):
+    return JSONResponse(app.openapi())
 
 
 @app.get("/datetime", tags=["General"])

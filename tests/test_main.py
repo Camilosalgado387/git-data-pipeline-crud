@@ -49,6 +49,31 @@ def test_health_endpoint(client):
     assert response.json() == {"status": "ok"}
 
 
+def test_login_redirects_to_docs_with_valid_credentials(client):
+    response = client.get(
+        "/login", auth=("admin", "admin"), follow_redirects=False
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/docs"
+
+
+def test_login_rejects_invalid_credentials(client):
+    response = client.get("/login", auth=("admin", "wrong"))
+
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"] == "Basic"
+
+
+def test_docs_requires_login(client):
+    unauthenticated = client.get("/docs")
+    authenticated = client.get("/docs", auth=("admin", "admin"))
+
+    assert unauthenticated.status_code == 401
+    assert authenticated.status_code == 200
+    assert "SwaggerUIBundle" in authenticated.text
+
+
 def test_datetime_endpoint(client):
     response = client.get("/datetime")
 

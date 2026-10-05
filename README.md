@@ -71,6 +71,13 @@ uvicorn app.main:app --reload --port 8000
 Visita la documentación interactiva (Swagger UI) en tu navegador:
 👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
 
+La documentación requiere autenticación HTTP Basic. Usa `admin` como usuario y `admin` como contraseña. También puedes iniciar el flujo desde `http://127.0.0.1:8000/login`.
+
+### Documentación técnica
+
+- [Contexto completo de la codebase](CODEBASE_CONTEXT.md)
+- [ADDR: decisiones de arquitectura y diseño](ADDR.md)
+
 ---
 
 ## 🗺️ Roadmap de Misiones Git & CI/CD
