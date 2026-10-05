@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query, status
 
@@ -50,6 +51,16 @@ def read_root():
 @app.get("/health", tags=["General"])
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/datetime", tags=["General"])
+def current_datetime():
+    now = datetime.now(timezone.utc)
+    return {
+        "date": now.date().isoformat(),
+        "time": now.time().isoformat(),
+        "datetime": now.isoformat(),
+    }
 
 
 @app.post(

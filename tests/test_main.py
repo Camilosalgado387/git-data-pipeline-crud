@@ -1,5 +1,6 @@
 import os
 import tempfile
+from datetime import date, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -46,6 +47,16 @@ def test_health_endpoint(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_datetime_endpoint(client):
+    response = client.get("/datetime")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert date.fromisoformat(data["date"])
+    assert datetime.fromisoformat(data["datetime"]).tzinfo is not None
+    assert data["datetime"].startswith(data["date"])
 
 
 def test_create_and_get_dataset(client):
