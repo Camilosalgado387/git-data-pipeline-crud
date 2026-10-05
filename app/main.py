@@ -27,7 +27,8 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 
-
+# Create FastAPI app with metadata and lifespan context
+#Hola si buenas
 app = FastAPI(
     title="Data Pipeline & Dataset Catalog API",
     description="A hands-on Data Engineering API to manage dataset metadata and pipeline run logs while mastering Git and CI/CD.",
